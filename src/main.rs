@@ -18,17 +18,19 @@ struct Cli {
     #[arg(short = 'I', long)]
     no_initial_values: bool,
 
-    /// Print raw data to standard error with a timestamp
+    /// Exit after a number of changes
+    #[arg(short = 'c', long = "changes", value_name = "count")]
+    changes: Option<u32>,
+
+
+    /// Print raw data and errors to standard error with a timestamp
     #[arg(short = 'd', long = "debug")]
     debug: bool,
+
 
     /// Polling interval in seconds
     #[arg(short = 'n', long, value_name = "seconds", default_value = "1")]
     interval: u32,
-
-    /// Exit after a number of changes
-    #[arg(short = 'm', long = "max-changes", value_name = "count")]
-    max_changes: Option<u32>,
 
     /// Subcommands for different data sources
     #[command(subcommand)]
@@ -122,7 +124,7 @@ fn print_debug(raw_data: &str) {
 
 fn watch(
     interval: time::Duration,
-    max_changes: Option<u32>,
+    changes: Option<u32>,
     print_date: bool,
     print_initial: bool,
     debug: bool,
@@ -154,7 +156,7 @@ fn watch(
     }
 
     loop {
-        if let Some(max) = max_changes {
+        if let Some(max) = changes {
             if change_count >= max {
                 break;
             }
@@ -237,7 +239,7 @@ fn main() {
 
     watch(
         time::Duration::from_secs(cli.interval as u64),
-        cli.max_changes,
+        cli.changes,
         !cli.no_date,
         !cli.no_initial_values,
         cli.debug,

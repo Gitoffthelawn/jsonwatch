@@ -239,8 +239,8 @@ tcltest::test url-1.5 {} -body {
 } -cleanup close -result matched
 
 
-tcltest::test max-changes-1.1 {} -body {
-    spawn $binary -I -m 1 url http://$host:$port/timestamp
+tcltest::test changes-1.1 {} -body {
+    spawn $binary -I -c 1 url http://$host:$port/timestamp
 
     expect \
         -glob {.timestamp: \d+ -> \d+} {} \
