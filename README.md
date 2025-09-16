@@ -107,12 +107,13 @@ Commands:
   help  Print this message or the help of the given subcommand(s)
 
 Options:
-  -D, --no-date             Don't print date and time for each diff
-  -I, --no-initial-values   Don't print initial JSON values
-  -d, --debug               Print raw data to standard error with a timestamp
-  -n, --interval <seconds>  Polling interval in seconds [default: 1]
-  -h, --help                Print help
-  -V, --version             Print version
+  -D, --no-date              Don't print date and time for each diff
+  -I, --no-initial-values    Don't print initial JSON values
+  -d, --debug                Print raw data to standard error with a timestamp
+  -n, --interval <seconds>   Polling interval in seconds [default: 1]
+  -m, --max-changes <count>  Exit after a number of changes
+  -h, --help                 Print help
+  -V, --version              Print version
 ```
 
 ### `cmd` subcommand

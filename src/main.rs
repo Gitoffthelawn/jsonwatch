@@ -7,7 +7,7 @@ use std::{process::Command, str, thread, time};
 #[command(
     name = "jsonwatch",
     about = "Track changes in JSON data",
-    version = "0.8.0"
+    version = "0.9.0"
 )]
 struct Cli {
     /// Don't print date and time for each diff
@@ -25,6 +25,10 @@ struct Cli {
     /// Polling interval in seconds
     #[arg(short = 'n', long, value_name = "seconds", default_value = "1")]
     interval: u32,
+
+    /// Exit after a number of changes
+    #[arg(short = 'm', long = "max-changes", value_name = "count")]
+    max_changes: Option<u32>,
 
     /// Subcommands for different data sources
     #[command(subcommand)]
@@ -117,11 +121,13 @@ fn print_debug(raw_data: &str) {
 
 fn watch(
     interval: time::Duration,
+    max_changes: Option<u32>,
     print_date: bool,
     print_initial: bool,
     debug: bool,
     lambda: impl Fn() -> String,
 ) {
+    let mut change_count = 0;
     let raw_data = lambda();
     let mut data: Option<serde_json::Value> =
         serde_json::from_str(&raw_data).ok();
@@ -137,6 +143,12 @@ fn watch(
     }
 
     loop {
+        if let Some(max) = max_changes {
+            if change_count >= max {
+                break;
+            }
+        }
+
         thread::sleep(interval);
 
         let raw_data = lambda();
@@ -153,6 +165,8 @@ fn watch(
         if changed == 0 {
             continue;
         }
+
+        change_count += 1;
 
         if print_date {
             let local = Local::now();
@@ -200,6 +214,7 @@ fn main() {
 
     watch(
         time::Duration::from_secs(cli.interval as u64),
+        cli.max_changes,
         !cli.no_date,
         !cli.no_initial_values,
         cli.debug,

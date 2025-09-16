@@ -168,13 +168,15 @@ tcltest::test url-1.1 {} -body {
     expect \
         -regexp $re { lindex matched } \
         timeout { lindex {first timeout} } \
+        ;
 
     set re2 [format {%1$s[\dT:+-]+ .timestamp: \d+ -> \d+} \
-                    [clock format [clock seconds] -format %Y-%m] \
+        [clock format [clock seconds] -format %Y-%m] \
     ]
     expect \
         -regexp $re2 { lindex matched } \
         timeout { lindex {second timeout} } \
+        ;
 
 } -cleanup close -result matched
 
@@ -227,7 +229,7 @@ tcltest::test url-1.5 {} -body {
         ;
 
     expect {
-        -regexp {this-is-bar.*This is foo\."} {
+        -regexp {this-is-bar.*This is foo\.\"} {
             lindex matched
         }
         timeout {
@@ -235,6 +237,18 @@ tcltest::test url-1.5 {} -body {
         }
     }
 } -cleanup close -result matched
+
+
+tcltest::test max-changes-1.1 {} -body {
+    spawn $binary -I -m 1 url http://$host:$port/timestamp
+
+    expect \
+        -glob {.timestamp: \d+ -> \d+} {} \
+        timeout { return {change timeout} } \
+        ;
+
+    wait
+} -cleanup {} -match regexp -result {\d+ [^ ]+ 0 0}
 
 
 # Exit with a nonzero status if there are failed tests.
