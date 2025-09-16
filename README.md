@@ -92,7 +92,13 @@ just release-windows
 
 You must run jsonwatch with a subcommand.
 
-jsonwatch ignores data that isn't valid JSON.
+jsonwatch processes valid JSON.
+The following behavior applies:
+
+- If the data source (command or URL) produces an error (non-zero exit status or HTTP failure response), the stored data remains unchanged
+- Responses with invalid JSON do not update the stored data
+- An empty response (no data or whitespace only) sets stored data to empty, potentially causing a change
+- URL responses are limited to 128 MiB
 
 ### Global options
 
@@ -107,9 +113,9 @@ Commands:
   help  Print this message or the help of the given subcommand(s)
 
 Options:
-  -C, --changes <count>     Exit after a number of changes
   -D, --no-date             Don't print date and time for each diff
   -I, --no-initial-values   Don't print initial JSON values
+  -c, --changes <count>     Exit after a number of changes
   -d, --debug               Print raw data and errors to standard error with a
 timestamp
   -n, --interval <seconds>  Polling interval in seconds [default: 1]
