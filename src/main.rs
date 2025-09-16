@@ -22,11 +22,9 @@ struct Cli {
     #[arg(short = 'c', long = "changes", value_name = "count")]
     changes: Option<u32>,
 
-
     /// Print raw data and errors to standard error with a timestamp
     #[arg(short = 'd', long = "debug")]
     debug: bool,
-
 
     /// Polling interval in seconds
     #[arg(short = 'n', long, value_name = "seconds", default_value = "1")]
@@ -82,6 +80,8 @@ enum Commands {
     },
 }
 
+const MAX_BODY_SIZE: u64 = 128 * 1024 * 1024;
+
 fn run_command(
     command: &String,
     args: &[String],
@@ -100,16 +100,20 @@ fn fetch_url(
     user_agent: &str,
     headers: &[String],
 ) -> Result<String, Box<dyn Error>> {
-    let mut req = ureq::get(url).set("User-Agent", user_agent);
+    let mut request = ureq::get(url).header("User-Agent", user_agent);
 
     for header in headers {
         if let Some((name, value)) = header.split_once(':') {
-            req = req.set(name.trim(), value.trim());
+            request = request.header(name.trim(), value.trim());
         }
     }
 
-    let result = req.call()?;
-    Ok(result.into_string()?)
+    Ok(request
+        .call()?
+        .body_mut()
+        .with_config()
+        .limit(MAX_BODY_SIZE)
+        .read_to_string()?)
 }
 
 fn print_debug(raw_data: &str) {

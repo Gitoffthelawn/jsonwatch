@@ -15,4 +15,4 @@ categories = ["command-line-utilities"]
 chrono = "~0.4"
 clap = {features = ["derive"], version = "~4.5"}
 serde_json = {features = ["preserve_order"], version = "~1.0"}
-ureq = "~2.9"
+ureq = "~3.1"
