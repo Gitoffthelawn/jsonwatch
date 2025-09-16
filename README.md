@@ -119,7 +119,7 @@ timestamp
 
 ### `cmd` subcommand
 
-You can use `c`, `cmd`, or `command` as the name of the subcommand.
+You can use `cmd` or `command` as the name of the subcommand.
 
 ```none
 Execute a command and track changes in the JSON output
@@ -135,8 +135,6 @@ Options:
 ```
 
 ### `url` subcommand
-
-You can use `u` or `url` as the name of the subcommand.
 
 ```none
 Fetch a URL and track changes in the JSON data
@@ -299,7 +297,7 @@ $ jsonwatch --no-initial-values -n 300 url 'http://api.openweathermap.org/data/2
 Try this on a mobile device.
 
 ```none
-$ jsonwatch -I -n 300 u https://ipinfo.io/
+$ jsonwatch -I -n 300 url https://ipinfo.io/
 ```
 
 ## License

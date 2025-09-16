@@ -40,7 +40,7 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Execute a command and track changes in the JSON output
-    #[command(aliases(["c", "command"]))]
+    #[command(aliases(["command"]))]
     Cmd {
         /// Command to execute
         #[arg(value_name = "command")]
@@ -56,7 +56,7 @@ enum Commands {
     },
 
     /// Fetch a URL and track changes in the JSON data
-    #[command(aliases(["u"]))]
+    #[command()]
     Url {
         /// URL to fetch
         #[arg(value_name = "url")]

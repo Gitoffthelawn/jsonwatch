@@ -163,7 +163,7 @@ wapp-start [list -fromip 127.0.0.1 -nowait -server $port -trace]
 
 
 tcltest::test url-1.1 {} -body {
-    spawn $binary --interval 1 u http://$host:$port/timestamp
+    spawn $binary --interval 1 url http://$host:$port/timestamp
     set re {{\s*"timestamp":\s*\d+\s*}}
     expect \
         -regexp $re { lindex matched } \
