@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use clap::{Parser, Subcommand};
 use jsonwatch::diff;
-use std::{process::Command, str, thread, time};
+use std::{error::Error, process::Command, str, thread, time};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -80,20 +80,24 @@ enum Commands {
     },
 }
 
-fn run_command(command: &String, args: &[String]) -> String {
+fn run_command(
+    command: &String,
+    args: &[String],
+) -> Result<String, Box<dyn Error>> {
     if command.is_empty() {
-        return String::new();
+        return Ok(String::new());
     }
 
-    let output = Command::new(&command).args(args).output();
+    let output = Command::new(command).args(args).output()?;
 
-    match output {
-        Ok(output) => String::from_utf8_lossy(&output.stdout).into_owned(),
-        Err(_) => String::new(),
-    }
+    Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-fn fetch_url(url: &str, user_agent: &str, headers: &[String]) -> String {
+fn fetch_url(
+    url: &str,
+    user_agent: &str,
+    headers: &[String],
+) -> Result<String, Box<dyn Error>> {
     let mut req = ureq::get(url).set("User-Agent", user_agent);
 
     for header in headers {
@@ -102,11 +106,8 @@ fn fetch_url(url: &str, user_agent: &str, headers: &[String]) -> String {
         }
     }
 
-    if let Ok(result) = req.call() {
-        result.into_string().unwrap_or_default()
-    } else {
-        String::new()
-    }
+    let result = req.call()?;
+    Ok(result.into_string()?)
 }
 
 fn print_debug(raw_data: &str) {
@@ -125,10 +126,20 @@ fn watch(
     print_date: bool,
     print_initial: bool,
     debug: bool,
-    lambda: impl Fn() -> String,
+    lambda: impl Fn() -> Result<String, Box<dyn Error>>,
 ) {
     let mut change_count = 0;
-    let raw_data = lambda();
+    let raw_data = match lambda() {
+        Ok(s) => s,
+        Err(e) => {
+            if debug {
+                let local = Local::now();
+                let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
+                eprintln!("[DEBUG {}] Error: {}", timestamp, e);
+            }
+            String::new()
+        }
+    };
     let mut data: Option<serde_json::Value> =
         serde_json::from_str(&raw_data).ok();
 
@@ -151,7 +162,17 @@ fn watch(
 
         thread::sleep(interval);
 
-        let raw_data = lambda();
+        let raw_data = match lambda() {
+            Ok(s) => s,
+            Err(e) => {
+                if debug {
+                    let local = Local::now();
+                    let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
+                    eprintln!("[DEBUG {}] Error: {}", timestamp, e);
+                }
+                continue;
+            }
+        };
         if debug {
             print_debug(&raw_data);
         }
@@ -194,23 +215,25 @@ fn watch(
 fn main() {
     let cli = Cli::parse();
 
-    let lambda: Box<dyn Fn() -> String> = match &cli.command {
-        Commands::Cmd { args, command } => {
-            let args = args.clone();
-            let command = command.clone();
-            Box::new(move || run_command(&command, &args))
-        }
-        Commands::Url {
-            url,
-            user_agent,
-            headers,
-        } => {
-            let url = url.clone();
-            let user_agent = user_agent.clone();
-            let headers = headers.clone();
-            Box::new(move || fetch_url(&url, &user_agent, &headers))
-        }
-    };
+    let lambda: Box<dyn Fn() -> Result<String, Box<dyn Error>>> =
+        match &cli.command {
+            Commands::Cmd { args, command } => {
+                let args = args.clone();
+                let command = command.clone();
+                Box::new(move || run_command(&command, &args))
+            }
+
+            Commands::Url {
+                url,
+                user_agent,
+                headers,
+            } => {
+                let url = url.clone();
+                let user_agent = user_agent.clone();
+                let headers = headers.clone();
+                Box::new(move || fetch_url(&url, &user_agent, &headers))
+            }
+        };
 
     watch(
         time::Duration::from_secs(cli.interval as u64),
