@@ -143,11 +143,26 @@ fn watch(
                 let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
                 eprintln!("[DEBUG {}] Error: {}", timestamp, e);
             }
+
             String::new()
         }
     };
     let mut data: Option<serde_json::Value> =
-        serde_json::from_str(&raw_data).ok();
+        match serde_json::from_str(&raw_data) {
+            Ok(json) => Some(json),
+            Err(e) => {
+                if debug && !raw_data.trim().is_empty() {
+                    let local = Local::now();
+                    let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
+                    eprintln!(
+                        "[DEBUG {}] JSON parsing error: {}",
+                        timestamp, e
+                    );
+                }
+
+                None
+            }
+        };
 
     if print_initial {
         if debug {
@@ -176,6 +191,7 @@ fn watch(
                     let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
                     eprintln!("[DEBUG {}] Error: {}", timestamp, e);
                 }
+
                 continue;
             }
         };
@@ -184,7 +200,25 @@ fn watch(
         }
 
         let prev = data.clone();
-        data = serde_json::from_str(&raw_data).ok();
+        data = match serde_json::from_str(&raw_data) {
+            Ok(json) => Some(json),
+            Err(e) => {
+                if !raw_data.trim().is_empty() {
+                    if debug {
+                        let local = Local::now();
+                        let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
+                        eprintln!(
+                            "[DEBUG {}] JSON parsing error: {}",
+                            timestamp, e
+                        );
+                    }
+
+                    continue;
+                }
+
+                None
+            }
+        };
 
         let diff = diff::diff(&prev, &data);
 
