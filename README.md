@@ -108,15 +108,15 @@ Some security measures are in place:
 - URL responses are limited to 128 MiB
 - Command output is not limited in size and is buffered in memory
 
-Control characters are escaped as follows:
+Control characters are escaped as follows (`\\` represents a literal backslash character):
 
-| Character              | Escaped as         | Example                        |
-|------------------------|--------------------|--------------------------------|
-| Newline (`\n`)         | Passed through     | `"A\nB"` → `"A\nB"`            |
-| Tab (`\t`)             | Passed through     | `"A\tB"` → `"A\tB"`            |
-| Carriage return (`\r`) | `\u{d}`            | `"A\rB"` → `"A\u{d}B"`         |
-| Escape (`\x1b`)        | `\u{1b}`           | `"\x1b[32m"` → `"\u{1b}[32m"`  |
-| Other control chars    | `\u{xx}`           | ASCII BEL (`\x07`) → `"\u{7}"` |
+| Character              | Escaped as     | Example                       |
+|------------------------|----------------|-------------------------------|
+| Newline (`\n`)         | Passed through | `A\nB` → `A\nB`               |
+| Tab (`\t`)             | Passed through | `A\tB` → `A\tB`               |
+| Carriage return (`\r`) | `\\u{d}`       | `A\rB` → `A\\u{d}B`           |
+| Escape (`\x1b`)        | `\\u{1b}`      | `\x1b[32m` → `\\u{1b}[32m`    |
+| Other control chars    | `\\u{xx}`      | ASCII BEL (`\x07`) → `\\u{7}` |
 
 Non-control characters are printed as is.
 
