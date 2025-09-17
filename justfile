@@ -9,7 +9,7 @@ export JSONWATCH_COMMAND := "target/debug/jsonwatch"
 
 default: test
 
-debug:
+build:
     cargo build
 
 [unix]
@@ -30,10 +30,10 @@ release-windows:
     strip {{ WIN32_BINARY }}
 
 [unix]
-test: debug test-unit test-e2e
+test: build test-unit test-e2e
 
 [windows]
-test: debug test-unit
+test: build test-unit
 
 # The end-to-end tests use Expect and do not work on Windows.
 [unix]
