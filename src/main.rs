@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use clap::{Parser, Subcommand};
 use jsonwatch::diff;
-use std::{error::Error, process::Command, str, thread, time};
+use std::{error::Error, fmt::Write, process::Command, str, thread, time};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -22,13 +22,13 @@ struct Cli {
     #[arg(short = 'c', long = "changes", value_name = "count")]
     changes: Option<u32>,
 
-    /// Print raw data and errors to standard error with a timestamp
-    #[arg(short = 'd', long = "debug")]
-    debug: bool,
-
     /// Polling interval in seconds
     #[arg(short = 'n', long, value_name = "seconds", default_value = "1")]
     interval: u32,
+
+    /// Verbose mode ('-v' for errors, '-vv' for raw data and errors)
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    verbose: u8,
 
     /// Subcommands for different data sources
     #[command(subcommand)]
@@ -81,6 +81,7 @@ enum Commands {
 }
 
 const MAX_BODY_SIZE: u64 = 128 * 1024 * 1024;
+const TIMESTAMP_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
 fn run_command(
     command: &String,
@@ -116,13 +117,45 @@ fn fetch_url(
         .read_to_string()?)
 }
 
+pub fn escape_for_terminal(input: &str) -> String {
+    let mut result = String::with_capacity(input.len());
+
+    for ch in input.chars() {
+        match ch {
+            // Allow newline and tab for formatting.
+            '\n' | '\t' => result.push(ch),
+
+            // Escape other control characters.
+            ch if ch.is_control() => {
+                write!(&mut result, "\\u{{{:x}}}", ch as u32).unwrap();
+            }
+
+            // Keep all other characters.
+            _ => result.push(ch),
+        }
+    }
+
+    result
+}
+
 fn print_debug(raw_data: &str) {
     let local = Local::now();
-    let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
-    eprint!("[DEBUG {}]\n{}", timestamp, raw_data);
+    let timestamp = local.format(&TIMESTAMP_FORMAT);
 
-    if !raw_data.is_empty() && !raw_data.ends_with("\n") {
-        eprintln!()
+    let multiline = raw_data.trim_end_matches('\n').contains('\n');
+    let escaped = escape_for_terminal(&raw_data);
+
+    if multiline {
+        eprint!("[DEBUG {}] Multiline raw data:\n{}", timestamp, escaped);
+    } else {
+        eprint!("[DEBUG {}] Raw data: {}", timestamp, escaped);
+    }
+
+    if !raw_data.is_empty() && !raw_data.ends_with('\n') {
+        eprintln!();
+    }
+    if multiline {
+        eprintln!("---");
     }
 }
 
@@ -131,17 +164,17 @@ fn watch(
     changes: Option<u32>,
     print_date: bool,
     print_initial: bool,
-    debug: bool,
+    verbose: u8,
     lambda: impl Fn() -> Result<String, Box<dyn Error>>,
 ) {
     let mut change_count = 0;
     let raw_data = match lambda() {
         Ok(s) => s,
         Err(e) => {
-            if debug {
+            if verbose >= 1 {
                 let local = Local::now();
-                let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
-                eprintln!("[DEBUG {}] Error: {}", timestamp, e);
+                let timestamp = local.format(&TIMESTAMP_FORMAT);
+                eprintln!("[ERROR {}] {}", timestamp, e);
             }
 
             String::new()
@@ -151,11 +184,11 @@ fn watch(
         match serde_json::from_str(&raw_data) {
             Ok(json) => Some(json),
             Err(e) => {
-                if debug && !raw_data.trim().is_empty() {
+                if verbose >= 1 && !raw_data.trim().is_empty() {
                     let local = Local::now();
-                    let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
+                    let timestamp = local.format(&TIMESTAMP_FORMAT);
                     eprintln!(
-                        "[DEBUG {}] JSON parsing error: {}",
+                        "[ERROR {}] JSON parsing error: {}",
                         timestamp, e
                     );
                 }
@@ -165,7 +198,7 @@ fn watch(
         };
 
     if print_initial {
-        if debug {
+        if verbose >= 2 {
             print_debug(&raw_data);
         }
 
@@ -186,16 +219,16 @@ fn watch(
         let raw_data = match lambda() {
             Ok(s) => s,
             Err(e) => {
-                if debug {
+                if verbose >= 1 {
                     let local = Local::now();
-                    let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
-                    eprintln!("[DEBUG {}] Error: {}", timestamp, e);
+                    let timestamp = local.format(&TIMESTAMP_FORMAT);
+                    eprintln!("[ERROR {}] {}", timestamp, e);
                 }
 
                 continue;
             }
         };
-        if debug {
+        if verbose >= 2 {
             print_debug(&raw_data);
         }
 
@@ -204,11 +237,11 @@ fn watch(
             Ok(json) => Some(json),
             Err(e) => {
                 if !raw_data.trim().is_empty() {
-                    if debug {
+                    if verbose >= 1 {
                         let local = Local::now();
-                        let timestamp = local.format("%Y-%m-%dT%H:%M:%S%z");
+                        let timestamp = local.format(&TIMESTAMP_FORMAT);
                         eprintln!(
-                            "[DEBUG {}] JSON parsing error: {}",
+                            "[ERROR {}] JSON parsing error: {}",
                             timestamp, e
                         );
                     }
@@ -231,7 +264,7 @@ fn watch(
 
         if print_date {
             let local = Local::now();
-            print!("{}", local.format("%Y-%m-%dT%H:%M:%S%z"));
+            print!("{}", local.format(&TIMESTAMP_FORMAT));
 
             if changed == 1 {
                 print!(" ");
@@ -280,7 +313,7 @@ fn main() {
         cli.changes,
         !cli.no_date,
         !cli.no_initial_values,
-        cli.debug,
+        cli.verbose,
         lambda,
     );
 }

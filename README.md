@@ -98,7 +98,25 @@ The following behavior applies:
 - If the data source (command or URL) produces an error (non-zero exit status or HTTP failure response), the stored data remains unchanged
 - Responses with invalid JSON do not update the stored data
 - An empty response (no data or whitespace only) sets stored data to empty, potentially causing a change
+
+Some security measures are in place:
+
+- Raw data (command output or HTTP response body) printed with `-vv` has control characters escaped to prevent display issues and security risks like ANSI injection.
+  Command output is also escaped because commands that access remote data sources are expected.
 - URL responses are limited to 128 MiB
+- Command output is not limited in size and is buffered in memory
+
+Control characters are escaped as follows:
+
+| Character              | Escaped as         | Example                        |
+|------------------------|--------------------|--------------------------------|
+| Newline (`\n`)         | Passed through     | `"A\nB"` → `"A\nB"`            |
+| Tab (`\t`)             | Passed through     | `"A\tB"` → `"A\tB"`            |
+| Carriage return (`\r`) | `\u{d}`            | `"A\rB"` → `"A\u{d}B"`         |
+| Escape (`\x1b`)        | `\u{1b}`           | `"\x1b[32m"` → `"\u{1b}[32m"`  |
+| Other control chars    | `\u{xx}`           | ASCII BEL (`\x07`) → `'\u{7}'` |
+
+Non-control characters are printed as is.
 
 ### Global options
 
@@ -116,9 +134,9 @@ Options:
   -D, --no-date             Don't print date and time for each diff
   -I, --no-initial-values   Don't print initial JSON values
   -c, --changes <count>     Exit after a number of changes
-  -d, --debug               Print raw data and errors to standard error with a
-timestamp
   -n, --interval <seconds>  Polling interval in seconds [default: 1]
+  -v, --verbose...          Verbose mode ('-v' for errors, '-vv' for raw data
+and errors)
   -h, --help                Print help
   -V, --version             Print version
 ```
@@ -288,7 +306,7 @@ The API in this example no longer works without a key.
 ```none
 $ jsonwatch --no-initial-values -n 300 url 'http://api.openweathermap.org/data/2.5/weather?q=Kiev,ua'
 
-2014-03-17T23:06:19.073790
+2014-03-17T23:06:19+0200
     + .rain.1h: 0.76
     - .rain.3h: 0.5
     .dt: 1395086402 -> 1395089402

@@ -290,7 +290,7 @@ tcltest::test url-1.5 {} -body {
 tcltest::test error-1.1 {HTTP error} -setup {set timeout 5} -body {
     # JSON -> 403 -> JSON.
     # Should result in one change.
-    spawn $binary -d -n 1 --no-initial-values url http://$host:$port/json-403-json
+    spawn $binary -v -n 1 --no-initial-values url http://$host:$port/json-403-json
 
     expect {
         -glob {.counter: 0 -> 2} { return matched }
@@ -302,7 +302,7 @@ tcltest::test error-1.1 {HTTP error} -setup {set timeout 5} -body {
 tcltest::test error-1.2 {garbage JSON} -setup {set timeout 5} -body {
     # JSON -> garbage -> JSON.
     # Should result in one change.
-    spawn $binary -d -n 1 --no-initial-values url http://$host:$port/json-garbage-json
+    spawn $binary -v -n 1 --no-initial-values url http://$host:$port/json-garbage-json
 
     expect {
         -glob {.counter: 0 -> 2} { return matched }
@@ -314,7 +314,7 @@ tcltest::test error-1.2 {garbage JSON} -setup {set timeout 5} -body {
 tcltest::test error-1.3 {blank response} -setup {set timeout 5} -body {
     # JSON -> blank -> JSON.
     # Should result in two changes.
-    spawn $binary -n 1 --no-initial-values url http://$host:$port/json-blank-json
+    spawn $binary -v -n 1 --no-initial-values url http://$host:$port/json-blank-json
 
     expect {
         -glob {- .counter: 0} {}
