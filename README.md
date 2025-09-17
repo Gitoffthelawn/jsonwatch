@@ -21,7 +21,7 @@ page.
 
 ### Installing with Cargo
 
-```sh
+```shell
 cargo install jsonwatch
 ```
 
@@ -29,24 +29,25 @@ cargo install jsonwatch
 
 Follow the instructions to build a static Linux binary of jsonwatch from the source code on recent Debian and Ubuntu.
 
-1\. Install [Rustup](https://rustup.rs/).
-    Through Rustup, add the stable musl libc target for your CPU.
+1. Install [Rustup](https://rustup.rs/).
+   Through Rustup, add the stable musl libc target for your CPU.
 
-```sh
+```shell
 rustup target add x86_64-unknown-linux-musl
 ```
 
-2\. Install the build and test dependencies.
+2. Install the build and test dependencies.
+   Building requires [just](https://github.com/casey/just) 1.39 or later.
 
-```sh
+```shell
 sudo apt install build-essential expect musl-tools
 cargo install just
 ```
 
-3\. Clone this repository.
-    Build the binary.
+3. Clone this repository.
+   Build the binary.
 
-```sh
+```shell
 git clone https://github.com/dbohdan/jsonwatch
 cd jsonwatch
 just test
@@ -57,32 +58,33 @@ just release-linux
 
 Follow the instructions to build a 32-bit Windows binary of jsonwatch on recent Debian and Ubuntu.
 
-1\. Install [Rustup](https://rustup.rs/).
-    Through Rustup, add the i686 GNU ABI Windows target.
+1. Install [Rustup](https://rustup.rs/).
+   Through Rustup, add the i686 GNU ABI Windows target.
 
-```sh
+```shell
 rustup target add i686-pc-windows-gnu
 ```
 
-2\. Install the build dependencies.
+2. Install the build dependencies.
+   Building requires [just](https://github.com/casey/just) 1.39 or later.
 
-```sh
+```shell
 sudo apt install build-essential mingw-w64
 cargo install just
 ```
 
-3\. Configure Cargo for cross-compilation.
-    Add the following to `~/.cargo/config`.
+3. Configure Cargo for cross-compilation.
+   Add the following to `~/.cargo/config`.
 
 ```toml
 [target.i686-pc-windows-gnu]
 linker = "/usr/bin/i686-w64-mingw32-gcc"
 ```
 
-4\. Clone this repository.
-    Build the binary.
+4. Clone this repository.
+   Build the binary.
 
-```sh
+```shell
 git clone https://github.com/dbohdan/jsonwatch
 cd jsonwatch
 just release-windows
@@ -114,7 +116,7 @@ Control characters are escaped as follows:
 | Tab (`\t`)             | Passed through     | `"A\tB"` → `"A\tB"`            |
 | Carriage return (`\r`) | `\u{d}`            | `"A\rB"` → `"A\u{d}B"`         |
 | Escape (`\x1b`)        | `\u{1b}`           | `"\x1b[32m"` → `"\u{1b}[32m"`  |
-| Other control chars    | `\u{xx}`           | ASCII BEL (`\x07`) → `'\u{7}'` |
+| Other control chars    | `\u{xx}`           | ASCII BEL (`\x07`) → `"\u{7}"` |
 
 Non-control characters are printed as is.
 
