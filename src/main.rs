@@ -26,7 +26,7 @@ struct Cli {
     #[arg(short = 'n', long, value_name = "seconds", default_value = "2")]
     interval: u32,
 
-    /// Verbose mode ('-v' for errors, '-vv' for raw data and errors)
+    /// Verbose mode ('-v' for errors, '-vv' for input data and errors)
     #[arg(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
 
@@ -138,25 +138,25 @@ pub fn escape_for_terminal(input: &str) -> String {
     result
 }
 
-fn print_debug(raw_data: &str) {
+fn print_debug(input_data: &str) {
     let local = Local::now();
     let timestamp = local.format(&TIMESTAMP_FORMAT);
 
     let multiline =
-        raw_data.trim_end().contains('\n') || raw_data.ends_with("\n\n");
-    let escaped = escape_for_terminal(&raw_data);
+        input_data.trim_end().contains('\n') || input_data.ends_with("\n\n");
+    let escaped = escape_for_terminal(&input_data);
 
     if multiline {
-        eprint!("[DEBUG {}] Multiline raw data:\n{}", timestamp, escaped);
+        eprint!("[DEBUG {}] Multiline input data:\n{}", timestamp, escaped);
     } else {
-        eprint!("[DEBUG {}] Raw data: {}", timestamp, escaped);
+        eprint!("[DEBUG {}] Input data: {}", timestamp, escaped);
     }
 
-    if !raw_data.is_empty() && !raw_data.ends_with('\n') {
+    if !input_data.is_empty() && !input_data.ends_with('\n') {
         eprintln!();
     }
     if multiline {
-        eprintln!("[DEBUG {}] End of multiline raw data", timestamp);
+        eprintln!("[DEBUG {}] End of multiline input data", timestamp);
     }
 }
 
@@ -169,7 +169,7 @@ fn watch(
     lambda: impl Fn() -> Result<String, Box<dyn Error>>,
 ) {
     let mut change_count = 0;
-    let raw_data = match lambda() {
+    let input_data = match lambda() {
         Ok(s) => s,
         Err(e) => {
             if verbose >= 1 {
@@ -182,10 +182,10 @@ fn watch(
         }
     };
     let mut data: Option<serde_json::Value> =
-        match serde_json::from_str(&raw_data) {
+        match serde_json::from_str(&input_data) {
             Ok(json) => Some(json),
             Err(e) => {
-                if verbose >= 1 && !raw_data.trim().is_empty() {
+                if verbose >= 1 && !input_data.trim().is_empty() {
                     let local = Local::now();
                     let timestamp = local.format(&TIMESTAMP_FORMAT);
                     eprintln!(
@@ -200,7 +200,7 @@ fn watch(
 
     if print_initial {
         if verbose >= 2 {
-            print_debug(&raw_data);
+            print_debug(&input_data);
         }
 
         if let Some(json) = &data {
@@ -217,7 +217,7 @@ fn watch(
 
         thread::sleep(interval);
 
-        let raw_data = match lambda() {
+        let input_data = match lambda() {
             Ok(s) => s,
             Err(e) => {
                 if verbose >= 1 {
@@ -230,14 +230,14 @@ fn watch(
             }
         };
         if verbose >= 2 {
-            print_debug(&raw_data);
+            print_debug(&input_data);
         }
 
         let prev = data.clone();
-        data = match serde_json::from_str(&raw_data) {
+        data = match serde_json::from_str(&input_data) {
             Ok(json) => Some(json),
             Err(e) => {
-                if !raw_data.trim().is_empty() {
+                if !input_data.trim().is_empty() {
                     if verbose >= 1 {
                         let local = Local::now();
                         let timestamp = local.format(&TIMESTAMP_FORMAT);

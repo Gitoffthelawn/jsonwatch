@@ -103,7 +103,7 @@ The following behavior applies:
 
 Some security measures are in place:
 
-- Raw data (command output or HTTP response body) printed with `-vv` has control characters escaped to prevent display issues and security risks like ANSI injection.
+- Input data (command output or HTTP response body) printed with `-vv` has any control characters escaped to prevent display issues and security risks like ANSI escape sequence injection.
   Command output is also escaped because commands that access remote data sources are expected.
 - URL responses are limited to 128 MiB
 - Command output is not limited in size and is buffered in memory
@@ -137,7 +137,7 @@ Options:
   -I, --no-initial-values   Don't print initial JSON values
   -c, --changes <count>     Exit after a number of changes
   -n, --interval <seconds>  Polling interval in seconds [default: 2]
-  -v, --verbose...          Verbose mode ('-v' for errors, '-vv' for raw data
+  -v, --verbose...          Verbose mode ('-v' for errors, '-vv' for input data
 and errors)
   -h, --help                Print help
   -V, --version             Print version
