@@ -156,7 +156,7 @@ fn print_debug(raw_data: &str) {
         eprintln!();
     }
     if multiline {
-        eprintln!("---");
+        eprintln!("[DEBUG {}] End of multiline raw data", timestamp);
     }
 }
 
