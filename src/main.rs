@@ -60,7 +60,7 @@ enum Commands {
         #[arg(value_name = "url")]
         url: String,
 
-        /// Custom User-Agent string
+        /// Custom user-agent string
         #[arg(
             short = 'A',
             long = "user-agent",
