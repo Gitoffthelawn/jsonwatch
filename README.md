@@ -134,7 +134,7 @@ Options:
   -D, --no-date             Don't print date and time for each diff
   -I, --no-initial-values   Don't print initial JSON values
   -c, --changes <count>     Exit after a number of changes
-  -n, --interval <seconds>  Polling interval in seconds [default: 1]
+  -n, --interval <seconds>  Polling interval in seconds [default: 2]
   -v, --verbose...          Verbose mode ('-v' for errors, '-vv' for raw data
 and errors)
   -h, --help                Print help
@@ -200,7 +200,7 @@ $ jsonwatch -n 1 cmd sh -c "echo '{ \"filename\": \"'\$(mktemp -u)'\"}'"
 The command in this example tracks Docker process information when you have a single running container.
 
 ```none
-$ jsonwatch command docker ps -a "--format={{json .}}"
+$ jsonwatch -n 1 command docker ps -a "--format={{json .}}"
 
 2020-01-19T18:57:20+0000
     + .Command: "\"bash\""

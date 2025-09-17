@@ -23,7 +23,7 @@ struct Cli {
     changes: Option<u32>,
 
     /// Polling interval in seconds
-    #[arg(short = 'n', long, value_name = "seconds", default_value = "1")]
+    #[arg(short = 'n', long, value_name = "seconds", default_value = "2")]
     interval: u32,
 
     /// Verbose mode ('-v' for errors, '-vv' for raw data and errors)
