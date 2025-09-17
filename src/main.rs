@@ -142,7 +142,8 @@ fn print_debug(raw_data: &str) {
     let local = Local::now();
     let timestamp = local.format(&TIMESTAMP_FORMAT);
 
-    let multiline = raw_data.trim_end_matches('\n').contains('\n');
+    let multiline =
+        raw_data.trim_end().contains('\n') || raw_data.ends_with("\n\n");
     let escaped = escape_for_terminal(&raw_data);
 
     if multiline {
