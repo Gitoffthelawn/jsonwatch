@@ -1,6 +1,6 @@
 [package]
 name = "jsonwatch"
-version = "0.9.0"
+version = "0.10.0"
 authors = ["D. Bohdan <dbohdan@dbohdan.com>"]
 edition = "2018"
 license = "MIT"
@@ -14,5 +14,6 @@ categories = ["command-line-utilities"]
 [dependencies]
 chrono = "~0.4"
 clap = {features = ["derive"], version = "~4.5"}
+clap_complete = "4.5.58"
 serde_json = {features = ["preserve_order"], version = "~1.0"}
 ureq = "~3.1"

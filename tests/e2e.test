@@ -68,6 +68,33 @@ tcltest::test cli-1.3 {} -body {
 } -returnCodes error -match glob -result *
 
 
+# Shell completions.
+
+tcltest::test cli-2.1 {init subcommand - bash} -body {
+    exec $binary init bash
+} -match glob -result *jsonwatch*
+
+
+tcltest::test cli-2.2 {init subcommand - elvish} -body {
+    exec $binary init elvish
+} -match glob -result *jsonwatch*
+
+
+tcltest::test cli-2.3 {init subcommand - fish} -body {
+    exec $binary init fish
+} -match glob -result *jsonwatch*
+
+
+tcltest::test cli-2.4 {init subcommand - powershell} -body {
+    exec $binary init powershell
+} -match glob -result *jsonwatch*
+
+
+tcltest::test cli-2.5 {init subcommand - zsh} -body {
+    exec $binary init zsh
+} -match glob -result *jsonwatch*
+
+
 # Command tests.
 
 tcltest::test command-1.1 {} -body {
@@ -159,52 +186,6 @@ proc wapp-page-headers {} {
 }
 
 
-set count_403 0
-proc wapp-page-json-403-json {} {
-    global count_403
-    wapp-mimetype application/json
-
-    if {$count_403 % 2 == 1} {
-        wapp-reply-code {403 Forbidden}
-        wapp Forbidden
-    } else {
-        wapp "{\"counter\": $count_403}"
-    }
-
-    incr count_403
-}
-
-
-set count_garbage 0
-proc wapp-page-json-garbage-json {} {
-    global count_garbage
-    wapp-mimetype application/json
-
-    if {$count_garbage % 2 == 1} {
-        wapp {not json}
-    } else {
-        wapp "{\"counter\": $count_garbage}"
-    }
-
-    incr count_garbage
-}
-
-
-set count_blank 0
-proc wapp-page-json-blank-json {} {
-    global count_blank
-    wapp-mimetype application/json
-
-    if {$count_blank % 2 == 1} {
-        wapp {}
-    } else {
-        wapp "{\"counter\": $count_blank}"
-    }
-
-    incr count_blank
-}
-
-
 wapp-start [list -fromip 127.0.0.1 -nowait -server $port -trace]
 
 
@@ -286,6 +267,52 @@ tcltest::test url-1.5 {} -body {
 
 
 # Error handling.
+
+set count_403 0
+proc wapp-page-json-403-json {} {
+    global count_403
+    wapp-mimetype application/json
+
+    if {$count_403 % 2 == 1} {
+        wapp-reply-code {403 Forbidden}
+        wapp Forbidden
+    } else {
+        wapp "{\"counter\": $count_403}"
+    }
+
+    incr count_403
+}
+
+
+set count_garbage 0
+proc wapp-page-json-garbage-json {} {
+    global count_garbage
+    wapp-mimetype application/json
+
+    if {$count_garbage % 2 == 1} {
+        wapp {not json}
+    } else {
+        wapp "{\"counter\": $count_garbage}"
+    }
+
+    incr count_garbage
+}
+
+
+set count_blank 0
+proc wapp-page-json-blank-json {} {
+    global count_blank
+    wapp-mimetype application/json
+
+    if {$count_blank % 2 == 1} {
+        wapp {}
+    } else {
+        wapp "{\"counter\": $count_blank}"
+    }
+
+    incr count_blank
+}
+
 
 tcltest::test error-1.1 {HTTP error} -setup {set timeout 5} -body {
     # JSON -> 403 -> JSON.

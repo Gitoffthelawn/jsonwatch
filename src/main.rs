@@ -1,5 +1,6 @@
 use chrono::prelude::*;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 use jsonwatch::diff;
 use std::{error::Error, fmt::Write, process::Command, str, thread, time};
 
@@ -7,7 +8,7 @@ use std::{error::Error, fmt::Write, process::Command, str, thread, time};
 #[command(
     name = "jsonwatch",
     about = "Track changes in JSON data",
-    version = "0.9.0"
+    version = "0.10.0"
 )]
 struct Cli {
     /// Don't print date and time for each diff
@@ -26,7 +27,7 @@ struct Cli {
     #[arg(short = 'n', long, value_name = "seconds", default_value = "2")]
     interval: u32,
 
-    /// Verbose mode ('-v' for errors, '-vv' for input data and errors)
+    /// Verbose mode ('-v' for errors, '-vv' for errors and input data)
     #[arg(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
 
@@ -77,6 +78,14 @@ enum Commands {
             action = clap::ArgAction::Append
         )]
         headers: Vec<String>,
+    },
+
+    /// Generate shell completions
+    #[command()]
+    Init {
+        /// The shell to generate completions for
+        #[arg(value_enum)]
+        shell: Shell,
     },
 }
 
@@ -289,8 +298,21 @@ fn watch(
 fn main() {
     let cli = Cli::parse();
 
+    if let Commands::Init { shell } = cli.command {
+        let mut cmd = Cli::command();
+        clap_complete::generate(
+            shell,
+            &mut cmd,
+            "jsonwatch",
+            &mut std::io::stdout(),
+        );
+        return;
+    }
+
     let lambda: Box<dyn Fn() -> Result<String, Box<dyn Error>>> =
         match &cli.command {
+            Commands::Init { .. } => unreachable!(),
+
             Commands::Cmd { args, command } => {
                 let args = args.clone();
                 let command = command.clone();

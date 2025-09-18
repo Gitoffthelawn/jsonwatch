@@ -130,6 +130,7 @@ Usage: jsonwatch [OPTIONS] <COMMAND>
 Commands:
   cmd   Execute a command and track changes in the JSON output
   url   Fetch a URL and track changes in the JSON data
+  init  Generate shell completions
   help  Print this message or the help of the given subcommand(s)
 
 Options:
@@ -137,8 +138,8 @@ Options:
   -I, --no-initial-values   Don't print initial JSON values
   -c, --changes <count>     Exit after a number of changes
   -n, --interval <seconds>  Polling interval in seconds [default: 2]
-  -v, --verbose...          Verbose mode ('-v' for errors, '-vv' for input data
-and errors)
+  -v, --verbose...          Verbose mode ('-v' for errors, '-vv' for errors and
+input data)
   -h, --help                Print help
   -V, --version             Print version
 ```
@@ -174,6 +175,21 @@ Options:
   -A, --user-agent <user-agent>  Custom user-agent string [default: curl/7.58.0]
   -H, --header <header>          Custom headers in the format "X-Foo: bar"
   -h, --help                     Print help
+```
+
+### `init` subcommand
+
+```none
+Generate shell completions
+
+Usage: jsonwatch init <SHELL>
+
+Arguments:
+  <SHELL>  The shell to generate completions for [possible values: bash,
+elvish, fish, powershell, zsh]
+
+Options:
+  -h, --help  Print help
 ```
 
 ## Use examples
